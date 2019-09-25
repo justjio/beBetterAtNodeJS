@@ -1,0 +1,9 @@
+[{
+    "email": "meetme@jio.io",
+    "admin": true,
+    "password": "THISjio@2019"
+    }, {
+        "email": "another@jio.io",
+        "admin": false,
+        "password": "fakeADMIN"
+    }]

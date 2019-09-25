@@ -1,0 +1,16 @@
+[{
+    "title": "Node is a movement",
+    "slug": "node-movement",
+    "published": true,
+    "text": "In one random deployment, it is often assumed that the number of scattered sensors are more than that required by the critical sensor density. Otherwise, complete area coverage may not be guaranteed in this deployment, and some coverage holes may exist. Besides using more sensors to improve coverage, mobile sensor nodes can be used to improve network coverage..."
+    }, {
+    "title": "Express.js Experience",
+    "slug": "express-experience",
+    "text": "Work in progress",
+    "published": false
+    },{
+    "title": "Node.js FUNdamentals: A Concise Overview of The Main Concepts",
+    "slug": "node-fundamentals",
+    "published": true,
+    "text": "Node.js is a highly efficient and scalable nonblocking I/O platform that was built on top of a Google Chrome V8 engine and its ECMAScript. This means that most front-end JavaScript (another implementation of ECMAScript) objects, functions, and methods are available in Node.js. Please refer to JavaScript FUNdamentals if you need a refresher on JS-specific basics."
+}]
