@@ -2,15 +2,17 @@ exports.show = (req, res, next) => {
     if (!req.params.slug) {
         return next(new Error('No article slug.'));
     }
-    req.collections.articles.findOne({slug: req.params.slug}, (error, article) => {
-        if (error) return next(error);
+    req.collections.articles.findOne({ slug: req.params.slug }).then((article) => {
+        console.log(article);
         if (!article.published) return res.send(401);
         res.render('article', article);
-    });
+    }).catch((error) => {
+        console.log(error);
+    })
 };//GET article page with a particular slug
 
 exports.list = (req, res, next) => {
-    req.collections.articles.find({}).toArray((error, articles) => {
+    req.collections.articles.find({}, (error, articles) => {
         if (error) return next(error);
         res.send({articles: articles});
     });

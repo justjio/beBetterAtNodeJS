@@ -3,7 +3,7 @@ exports.list = (req, res) => {
 }; //GET users listing
 
 exports.login = (req, res, next) => {
-    res.render('Login');
+    res.render('login');
 }; //GET login page
 
 exports.logout = (req, res, next) => {

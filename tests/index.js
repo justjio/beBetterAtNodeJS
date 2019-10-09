@@ -27,42 +27,42 @@ describe('server', function() {
     it('should contain posts', function(done) {
         superagent
             .get('http://localhost:' + port)
-            .end(function(res) {
+            .end(function(err, res) {
                 seedArticles.forEach((item, index, list) => {
+                    const expected = `<h2><a href="/articles/${item.slug}">${item.title}`;
                     if(item.published) {
-                        expect(res.text).to.contain('<h2><a href="/articles/' + item.slug + '">' + item.title);
-                    } else {
-                        expect(res.text).not.to.contain('<h2><a href="/articles/' + item.slug + '">' + item.title);
-                    }
-                    // console.log(item.title, res.text)
+                        expect(res.text).toContain(expected);
+                    };
+                    console.log(item.title, res.text);
                 })
                 done()
             })
     });
+
+    //New article page test suite
+    describe('article page', function() {
+        it('should display text', function(done) {
+            var n = seedArticles.length;
+            seedArticles.forEach((item, index, list) =>  {
+                superagent
+                    .get('http://localhost:' + port + '/articles/' + seedArticles[index].slug)
+                    .end(function(err, res) {
+                        if (item.published) {
+                            expect(res.text).toContain(seedArticles[index].text);
+                        } else {
+                            expect(res.status).toBe(401);
+                        }
+                        //console.log(item.title)
+                        if (index + 1 === n) {
+                            done()
+                        }
+                    })
+            })
+        })
+    });
+
     //Then shut server down
     after(function() {
         shutdown();
     });
 });
-
-//New article page test suite
-describe('article page', function() {
-    it('should display text', function(done) {
-        var n = seedArticles.length;
-        seedArticles.forEach((item, index, list) =>  {
-            superagent
-                .get('http://localhost:' + port + '/articles/' + seedArticles[index].slug)
-                .end(function(res) {
-                    if (item.published) {
-                        expect(res.text).to.contain(seedArticles[index].text);
-                    } else {
-                        expect(res.status).toBe(401);
-                    }
-                    //console.log(item.title)
-                    if (index + 1 === n) {
-                        done()
-                    }
-                })
-        })
-    })
-})

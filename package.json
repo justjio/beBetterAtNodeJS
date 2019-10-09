@@ -18,6 +18,7 @@
     "method-override": "^3.0.0",
     "mongodb": "^3.3.2",
     "mongoskin": "^2.1.0",
+    "monk": "^7.1.0",
     "morgan": "^1.9.1",
     "serve-favicon": "^2.5.0",
     "stylus": "^0.54.7"

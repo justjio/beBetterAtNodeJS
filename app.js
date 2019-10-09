@@ -1,13 +1,15 @@
 var express = require('express'),
-    routes = require('./routes'),
+    routeIndex = require('./routes/index'),
+    routeUser = require('./routes/user'),
+    routeArticle = require('./routes/article'),
     http = require('http'), 
     path = require('path'),
-    mongoskin = require('mongoskin'),
-    dbUrl = process.env.MONGODB_URL || 'mongodb://@localhost:27017/blog',
-    db = mongoskin.db(dbUrl, {safe: true}),
+    monk = require('monk'),
+    url = 'localhost:27017/blog',
+    db = monk(url),
     collections = {
-        articles: db.collection('articles'),
-        users: db.collection('users')
+        articles: db.get('articles'),
+        users: db.get('users')
     }; //At this stage, we are adding persistence
 
     //Adding middleware modules
@@ -40,27 +42,27 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(methodOverride());
 app.use(require('stylus').middleware(__dirname + '/public'));
-app.use(express.static(path.join(__dirname, public)));
+app.use(express.static(path.join(__dirname, 'public')));
 if ('development' == app.get('env')) {
     app.use(errorHandler());
 }
 
 //Pages and Routes
 //Make sure index.js, article.js and user.js are added in the routes folder
-app.get('/', routes.index);
-app.get('/login', routes.user.login);
-app.post('/login', routes.user.authenticate);
-app.get('/logout', routes.user.logout);
-app.get('/admin', routes.article.admin);
-app.get('/post', routes.article.post);
-app.post('/post', routes.article.postArticle);
-app.get('/articles/:slug', routes.article.show);
+app.get('/', routeIndex.index);
+app.get('/login', routeUser.login);
+app.post('/login', routeUser.authenticate);
+app.get('/logout', routeUser.logout);
+app.get('/admin', routeArticle.admin);
+app.get('/post', routeArticle.post);
+app.post('/post', routeArticle.postArticle);
+app.get('/articles/:slug', routeArticle.show);
 
 //REST API ROUTES for admin page
-app.get('/api/articles', routes.article.list);
-app.post('/api/articles', routes.article.add);
-app.put('/api/articles/:id', routes.article.edit);
-app.del('/api/articles/:id', routes.article.del);
+app.get('/api/articles', routeArticle.list);
+app.post('/api/articles', routeArticle.add);
+app.put('/api/articles/:id', routeArticle.edit);
+app.del('/api/articles/:id', routeArticle.del);
 
 //In case all routes fail...
 app.all('*', function (req, res) {
