@@ -1,3 +1,6 @@
+var TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY;
+var TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET;
+
 var express = require('express'),
     routeIndex = require('./routes/index'),
     routeUser = require('./routes/user'),
@@ -12,6 +15,9 @@ var express = require('express'),
         users: db.get('users')
     }; //At this stage, we are adding persistence
 
+    //Everyauth is imported here
+    everyauth = require('everyauth');
+
     //Adding middleware modules
     var session = require('express-session'),
         logger = require('morgan'),
@@ -19,6 +25,30 @@ var express = require('express'),
         cookieParser = require('cookie-parser'),
         bodyParser = require('body-parser'),
         methodOverride = require('method-override');
+
+//Configure everyauth
+everyauth.debug = true;
+everyauth.twitter.consumerKey(TWITTER_CONSUMER_KEY).consumerSecret(TWITTER_CONSUMER_SECRET)
+.findOrCreateUser(function(
+    session, accessToken, accessTokenSecret, twitterUserMetadata
+) {
+    console.log(twitterUserMetadata);
+
+    var promise = this.Promise();
+    process.nextTick(() => {
+        if (twitterUserMetadata.screen_name === 'Obiagba Joseph') {
+            session.user = twitterUserMetadata;
+            session.admin = true;
+        };
+        promise.fulfill(twitterUserMetadata);
+    })
+    return promise;
+}).redirectPath('/admin');
+
+everyauth.everymodule.handleLogout(routeUser.logout);
+everyauth.everymodule.findUserById((user, callback) => {
+    callback(user);
+});
 
 //Now the express app
 var app = express();
@@ -42,6 +72,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser('THISnode@2019-bebetter@node'));
 app.use(session({ secret: 'WHILEyouare@1234567890' }));
+app.use(everyauth.middleware());
 app.use(methodOverride());
 app.use(require('stylus').middleware(__dirname + '/public'));
 app.use(express.static(path.join(__dirname, 'public')));
