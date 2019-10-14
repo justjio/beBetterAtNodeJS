@@ -66,9 +66,8 @@ exports.postArticle = (req, res, next) => {
 }; //Post an article without admin access
 
 exports.admin = (req, res, next) => {
-    req.collections.articles.find({}, {sort: {_id: -1}}).toArray((error, articles) => {
+    req.collections.articles.find({}, {sort: {_id: -1}}, (error, articles) => {
         if (error) return next(error);
         res.render('admin', {articles: articles});
     });
 }; //Fetch all present articles and sort them but with admin access
-
