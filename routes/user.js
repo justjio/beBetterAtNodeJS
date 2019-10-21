@@ -7,7 +7,7 @@ exports.login = (req, res, next) => {
 }; //GET login page
 
 exports.logout = (req, res, next) => {
-    res.session.destroy();
+    req.session.destroy();
     res.redirect('/');
 }; //GET logout route
 

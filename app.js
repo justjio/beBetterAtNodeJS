@@ -1,5 +1,5 @@
-var TWITTER_CONSUMER_KEY = process.env.TWITTER_CONSUMER_KEY;
-var TWITTER_CONSUMER_SECRET = process.env.TWITTER_CONSUMER_SECRET;
+var FB_APP_ID = process.env.FB_APP_ID,
+    FB_APP_SECRET = process.env.FB_APP_SECRET;
 
 var express = require('express'),
     routeIndex = require('./routes/index'),
@@ -26,21 +26,24 @@ var express = require('express'),
         bodyParser = require('body-parser'),
         methodOverride = require('method-override');
 
-//Configure everyauth
+//Configure everyauth for twitter
 everyauth.debug = true;
-everyauth.twitter.consumerKey(TWITTER_CONSUMER_KEY).consumerSecret(TWITTER_CONSUMER_SECRET)
-.findOrCreateUser(function(
-    session, accessToken, accessTokenSecret, twitterUserMetadata
+everyauth.facebook
+    .appId(FB_APP_ID)
+    .appSecret(FB_APP_SECRET)
+    .handleAuthCallbackError((req, res) => {
+        //What to do when user is denied the app
+    })
+    .findOrCreateUser(function(
+    session, accessToken, accessTokenSecret, fbUserMetadata
 ) {
-    console.log(twitterUserMetadata);
-
     var promise = this.Promise();
     process.nextTick(() => {
-        if (twitterUserMetadata.screen_name === 'Obiagba Joseph') {
-            session.user = twitterUserMetadata;
+        if (fbUserMetadata.name === 'Joseph Obiagba') {
+            session.user = fbUserMetadata;
             session.admin = true;
         };
-        promise.fulfill(twitterUserMetadata);
+        promise.fulfill(fbUserMetadata);
     })
     return promise;
 }).redirectPath('/admin');
