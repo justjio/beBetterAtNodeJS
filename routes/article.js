@@ -2,7 +2,7 @@ exports.show = (req, res, next) => {
     if (!req.params.slug) {
         return next(new Error('No article slug.'));
     }
-    req.collections.articles.findOne({ slug: req.params.slug }).then((article) => {
+    req.model.Article.findOne({ slug: req.params.slug }).then((article) => {
         console.log(article);
         if (!article.published) return res.send(401);
         res.render('article', article);
@@ -12,7 +12,7 @@ exports.show = (req, res, next) => {
 };//GET article page with a particular slug
 
 exports.list = (req, res, next) => {
-    req.collections.articles.find({}, (error, articles) => {
+    req.model.Article.list((error, articles) => {
         if (error) return next(error);
         res.send({articles: articles});
     });
@@ -22,7 +22,7 @@ exports.add = (req, res, next) => {
     if (!req.body.article) return next(new Error('No article payload.'));
     var article = req.body.article;
     article.published = false;
-    req.collections.articles.insert(article, (error, articleResponse) => {
+    req.model.Article.save(article, (error, articleResponse) => {
         if (error) return next(error);
         res.send(articleResponse);
     });
@@ -30,7 +30,7 @@ exports.add = (req, res, next) => {
 
 exports.edit = (req, res, next) => {
     if (!req.params.id) return next(new Error('No article ID.'));
-    req.collections.articles.updateById(req.params.id, {$set: req.body.article}, (error, count) => {
+    req.model.Article.findByIdAndUpdate(req.params.id, {$set: req.body.article}, (error, count) => {
         if (error) return next(error);
         res.send({affectedCount: count});
     });
@@ -38,7 +38,7 @@ exports.edit = (req, res, next) => {
 
 exports.del = (req, res, next) => {
     if (!req.params.id) return next(new Error('No article ID.'));
-    req.collections.articles.removeById(req.params.id, (error, count) => {
+    req.model.Article.findByIdAndDelete(req.params.id, (error, count) => {
         if (error) return next(error);
         res.send({affectedCount: count});
     });
@@ -56,17 +56,17 @@ exports.postArticle = (req, res, next) => {
     const article = {
         title: req.body.title,
         slug: req.body.slug,
-        text: teq.body.text,
+        text: req.body.text,
         published: false
     };
-    req.collections.articles.insert(article, (error, articleResponse) => {
+    req.model.Article.save(article, (error, articleResponse) => {
         if (error) return next(error);
         res.render('post', {error: 'Article was added. Publish it on Admin page.'});
     });
 }; //Post an article without admin access
 
 exports.admin = (req, res, next) => {
-    req.collections.articles.find({}, {sort: {_id: -1}}, (error, articles) => {
+    req.model.Article.list((error, articles) => {
         if (error) return next(error);
         res.render('admin', {articles: articles});
     });

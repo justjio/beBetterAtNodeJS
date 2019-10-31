@@ -1,29 +1,34 @@
-var FB_APP_ID = process.env.FB_APP_ID,
+const FB_APP_ID = process.env.FB_APP_ID,
     FB_APP_SECRET = process.env.FB_APP_SECRET;
 
-var express = require('express'),
+const express = require('express'),
     routeIndex = require('./routes/index'),
     routeUser = require('./routes/user'),
     routeArticle = require('./routes/article'),
     http = require('http'), 
     path = require('path'),
-    monk = require('monk'),
-    url = 'localhost:27017/blog',
-    db = monk(url),
-    collections = {
-        articles: db.get('articles'),
-        users: db.get('users')
-    }; //At this stage, we are adding persistence
+    models = require('./models'),
+    mongoose = require('mongoose');
+
+    //Mongoose set - up
+    mongoose.connect('mongodb://localhost/blog', {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    });
+    const db = mongoose.connection;
+    db.on('error', console.error.bind(console, 'connection error: '));
+    db.once('open', () => {
+        console.log('We are connected to database!');
+    });
 
     //Everyauth is imported here
     everyauth = require('everyauth');
 
     //Adding middleware modules
-    var session = require('express-session'),
+    const session = require('express-session'),
         logger = require('morgan'),
         errorHandler = require('errorhandler'),
         cookieParser = require('cookie-parser'),
-        bodyParser = require('body-parser'),
         methodOverride = require('method-override');
 
 //Configure everyauth for twitter
@@ -37,7 +42,7 @@ everyauth.facebook
     .findOrCreateUser(function(
     session, accessToken, accessTokenSecret, fbUserMetadata
 ) {
-    var promise = this.Promise();
+    const promise = this.Promise();
     process.nextTick(() => {
         if (fbUserMetadata.name === 'Joseph Obiagba') {
             session.user = fbUserMetadata;
@@ -54,16 +59,16 @@ everyauth.everymodule.findUserById((user, callback) => {
 });
 
 //Now the express app
-var app = express();
+const app = express();
 app.locals.appTitle = 'blog-express';
 
 //Middleware for exposing collections via req.object
 app.use((req, res, next) => {
-    if(!collections.articles || !collections.users) 
-        return next(new Error('No collections present.'))
-    req.collections = collections;
+    if (!models.Article || !models.User) 
+        return next (new Error('No models'));
+    req.model = models;
     return next();
-})
+});
 
 app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
@@ -71,8 +76,8 @@ app.set('view engine', 'jade');
 
 //Config Middlewares
 app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
+app.use(express.json());
+app.use(express.urlencoded( { extended: false }));
 app.use(cookieParser('THISnode@2019-bebetter@node'));
 app.use(session({ secret: 'WHILEyouare@1234567890' }));
 app.use(everyauth.middleware());
@@ -92,7 +97,7 @@ app.use((req, res, next) => {
 });
 
 //Authorization middleware
-var authorize = (req, res, next) => {
+const authorize = (req, res, next) => {
     if (req.session && req.session.admin) 
         return next();
     else
@@ -115,7 +120,7 @@ app.all('/api', authorize); //This is a compact way of assigning authorization t
 app.get('/api/articles', routeArticle.list);
 app.post('/api/articles', routeArticle.add);
 app.put('/api/articles/:id', routeArticle.edit);
-app.del('/api/articles/:id', routeArticle.del);
+app.delete('/api/articles/:id', routeArticle.del);
 
 //In case all routes fail...
 app.all('*', function (req, res) {
@@ -124,14 +129,14 @@ app.all('*', function (req, res) {
 
 
 //Refactor server code to have boot and shutdown methods
-var server = http.createServer(app);
-var boot = function() {
+const server = http.createServer(app);
+const boot = function() {
     server.listen(app.get('port'), function() {
         console.info('Express server listening on port ' + app.get('port'));
     });
 };
 
-var shutdown = function() {
+const shutdown = function() {
     server.close();
 };
 
